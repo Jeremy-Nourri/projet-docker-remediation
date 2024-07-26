@@ -1,0 +1,62 @@
+services:
+
+  database:
+    container_name: database
+    image: mysql
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./Back/Exercice3/script.sql:/docker-entrypoint-initdb.d/script.sql
+    restart: always
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: rh
+    networks:
+      - projet-docker
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin
+    depends_on:
+      - database
+    restart: always
+    ports:
+      - "8090:80"
+    environment:
+      PMA_HOST: database
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - projet-docker
+    
+  backend:
+    container_name: backend
+    ports:
+      - "8080:8080"
+    build:
+      context: ./Back/Exercice3
+      dockerfile: Dockerfile
+    depends_on:
+      - database
+    networks:
+      - projet-docker
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/rh
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+  frontend:
+    container_name: frontend
+    ports:
+      - "80:80"
+    build:
+      context: ./Front/EmployeeApp
+      dockerfile: Dockerfile
+    networks:
+      - projet-docker
+
+networks:
+  projet-docker:
+
+volumes:
+  db_data:
+
